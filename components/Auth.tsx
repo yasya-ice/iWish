@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
-import { StyleSheet, View, Text, TextInput, Button, Alert } from 'react-native'
+import { StyleSheet, View, Text, TextInput, Button, Alert, Image } from 'react-native'
 import { supabase } from '../utils/supabase'
+
+const LOGO_SOURCE = require('../assets/logo.png'); // Kasutame lokaalset faili
 
 export default function Auth() {
   const [email, setEmail] = useState('')
@@ -62,8 +64,16 @@ export default function Auth() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>iWish Sisselogimine</Text>
+        <View style={styles.container}>
+      {/* Logo ja päise teksti konteiner */}
+      <View style={styles.headerContainer}>
+        {/* Logo komponent (kasutab lokaalset LOGO_SOURCE) */}
+        <Image 
+            style={styles.logoImage} 
+            source={LOGO_SOURCE} // Nüüd kasutame lokaalset faili
+        />
+        <Text style={styles.header}>iWish Sisselogimine</Text>
+      </View>
 
       {/* Meili sisestusväli */}
       <View style={styles.verticallySpaced}>
@@ -125,6 +135,19 @@ const styles = StyleSheet.create({
     flex: 1, // Keskendamiseks
     justifyContent: 'center', // Keskendame sisendvääljad ekraanil
     alignItems: 'stretch',
+  },
+  // Konteiner logo ja päise jaoks
+  headerContainer: {
+    justifyContent: 'center', 
+    alignItems: 'center',    
+    marginBottom: 20,
+  },
+  // Stiil logo pildi jaoks
+  logoImage: {
+    width: 100,  
+    height: 100, 
+    resizeMode: 'contain', 
+    marginBottom: 30,
   },
   header: {
     fontSize: 24,
