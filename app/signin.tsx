@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, Button, Alert } from 'react-native'; // Lisasime Button ja Alert
 // See import viitab Sinu puhastatud failile utils/supabase
-import { supabase } from './utils/supabase'; 
-import Auth from './components/Auth'; // Sisselogimise/Registreerimise vaade
+import { supabase } from '../utils/supabase'; 
+import Auth from '../components/Auth'; // Sisselogimise/Registreerimise vaade
 import { Session } from '@supabase/supabase-js'; // Session tüüp
 
 export default function App() {
