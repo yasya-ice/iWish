@@ -25,6 +25,9 @@
     },
     "web": {
       "favicon": "./assets/splash.png"
-    }
+    },
+    "plugins": [
+      "expo-router"
+    ]
   }
 }

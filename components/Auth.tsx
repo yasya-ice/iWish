@@ -1,6 +1,10 @@
 import React, { useState } from 'react'
 import { StyleSheet, View, Text, TextInput, Button, Alert, Image } from 'react-native'
-import { supabase } from '../utils/supabase'
+import { supabase } from '@/utils/supabase'
+
+export const unstable_settings = {
+  headerShown: false,
+};
 
 const LOGO_SOURCE = require('../assets/logo.png'); // Kasutame lokaalset faili
 
