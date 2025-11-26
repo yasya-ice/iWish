@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   titleBase: {
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: 'Lato',
     fontSize: 16,
     fontWeight: 700,
     alignItems: 'center',
