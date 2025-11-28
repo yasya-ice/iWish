@@ -7,6 +7,7 @@ import { Session } from '@supabase/supabase-js'; // Session tüüp
 import { useNavigation } from 'expo-router';
 import { customTabBarStyle } from "@/constants/tab-bar";
 import { ThemedButton } from '@/components/themed-button';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -48,20 +49,22 @@ export default function App() {
     <View style={styles.container}>
       {/* Kui seanss on olemas, kuva sisselogitud sisu */}
       {session && session.user ? (
-        <View style={styles.loggedInContainer}>
-          <Text style={styles.welcomeText}>
-            Tere tulemast, {session.user.email}! (Sisselogitud)
-          </Text>
-          
-          {/* UUS: Väljalogimise nupp */}
-          <View style={styles.signOutButtonContainer}>
-              <ThemedButton 
-                tone='border'
-                title="Logi välja" 
-                onPress={signOut} 
-              />
-          </View>
-
+        <View style={styles.container}>
+          <ThemedButton 
+            title="Actual" 
+            onPress={signOut} 
+          />
+          <ThemedButton 
+            variant="secondary"
+            tone="border"
+            title="Came true" 
+            onPress={signOut} 
+          />
+          <ThemedButton 
+            tone="border"
+            title={'\uff0b Add iWish'}
+            onPress={signOut} 
+          />
         </View>
       ) : (
         // Kui seanssi pole, kuva autentimise vorm
