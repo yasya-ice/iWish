@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, Button, Alert } from 'react-native'; // Lisasime Button ja Alert
+import { View, StyleSheet, Text, Alert } from 'react-native'; // Lisasime Button ja Alert
 // See import viitab Sinu puhastatud failile utils/supabase
-import { supabase } from './utils/supabase'; 
-import Auth from './components/Auth'; // Sisselogimise/Registreerimise vaade
+import { supabase } from '@/utils/supabase'; 
+import Auth from '@/components/Auth'; // Sisselogimise/Registreerimise vaade
 import { Session } from '@supabase/supabase-js'; // Session tüüp
+import { useNavigation } from 'expo-router';
+import { customTabBarStyle } from "@/constants/tab-bar";
+import { ThemedButton } from '@/components/themed-button';
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
+  const navigation = useNavigation(); 
 
   useEffect(() => {
     // 1. Kontrolli seansi olekut käivitamisel
@@ -22,6 +26,15 @@ export default function App() {
     // Puhasta kuulaja komponendi eemaldamisel
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerShown: !!session,   // show header only when logged in
+      tabBarStyle: session
+        ? customTabBarStyle                            // logged in → default tab bar
+        : { display: "none" },          // logged out → hide tab bar
+    });
+  }, [session]);
 
   // Väljalogimise funktsioon
   async function signOut() {
@@ -42,10 +55,10 @@ export default function App() {
           
           {/* UUS: Väljalogimise nupp */}
           <View style={styles.signOutButtonContainer}>
-              <Button 
+              <ThemedButton 
+                tone='border'
                 title="Logi välja" 
                 onPress={signOut} 
-                color="#ef4444" // Punane nupp väljalogimiseks
               />
           </View>
 
