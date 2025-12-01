@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
+import { supabase } from '../utils/supabase';
 
 // Impordin abikomponendid
 import WelcomeScreen from './WelcomeScreen';
@@ -15,28 +16,10 @@ export const GOOGLE_ICON = { uri: 'https://img.icons8.com/color/48/000000/google
 export const FACEBOOK_ICON = { uri: 'https://img.icons8.com/?size=100&id=106163&format=png&color=228BE6' };
 
 
-// Simuleeritud Supabase'i sisselogimise ja registreerimise funktsioonid
-const simulateAuth = async (email: string, password: string, isSignUp: boolean) => {
-    // Siin saate simuleerida edukat või ebaõnnestunud vastust
-    await new Promise(resolve => setTimeout(resolve, 1500)); // Simuleerime laadimisaega
-
-    if (email === "test@example.com" && password === "parool") {
-        return { error: null };
-    }
-    
-    if (isSignUp && (password.length < 6 || email.includes('fail'))) {
-        return { error: { message: "Simuleeritud viga: Parool on liiga lühike või e-posti aadress on keelatud." } };
-    } else if (!isSignUp && (email !== "test@example.com" || password !== "parool")) {
-        return { error: { message: "Simuleeritud viga: Vale e-posti aadress või parool." } };
-    }
-
-    return { error: null };
-};
-
-
 export default function Auth() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  // Eemaldan 'name' oleku, kuna Supabase'i põhiautentimine seda ei nõua
   const [name, setName] = useState('') 
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null) 
@@ -53,39 +36,53 @@ export default function Auth() {
     setLoading(false)
   }
 
-  // Sisselogimise funktsioon
+  // Sisselogimise funktsioon (TAASTAMINE)
   async function signInWithEmail() {
     startAuth()
 
-    const { error } = await simulateAuth(email, password, false); 
+    // Kasutan Supabase'i funktsiooni signInWithPassword
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    })
 
     if (error) {
+      // Supabase'i viga kuvatakse kasutajale
       setErrorMessage(error.message)
-    } else {
-      Alert.alert("Edu", "Edukalt sisse logitud (simulatsioon)");
     }
+    
+    // EDUKA Sisselogimise korral App.tsx-i onAuthStateChange kuulaja
+    // püüab seansi muutuse ja renderdab sisselogitud vaate.
     
     finishAuth()
   }
 
-  // Registreerimise funktsioon
+  // Registreerimise funktsioon (TAASTAMINE)
   async function signUpWithEmail() {
     startAuth()
 
-    const { error } = await simulateAuth(email, password, true);
+    // Kasutan Supabase'i funktsiooni signUp
+    const { error } = await supabase.auth.signUp({
+      email: email,
+      password: password,
+      // Supabase'i v2-s pole vaja 'name'-i
+      // data: { name: name } // Vajalik, kui tahaksite profiili metaandmeid lisada
+    })
 
     if (error) {
       setErrorMessage(error.message)
     } else {
+      // Edukas registreerimine, e-posti kinnitusvajadus
       Alert.alert(
         "Kinnitusvajalik",
         "Palun kinnita oma e-posti aadress, et sisse logida. Kontrolli oma postkasti!",
         [{ text: "OK" }]
       );
+      // Puhasta vormi väljad ja liigu sisselogimise vaatesse
       setEmail('');
       setPassword('');
       setName('');
-      setMode('signIn'); // Liigume sisselogimise vaatesse
+      setMode('signIn'); 
     }
     
     finishAuth()
