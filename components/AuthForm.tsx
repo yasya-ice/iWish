@@ -208,6 +208,7 @@ const styles = StyleSheet.create({
     color: '#ffffffff',
     fontSize: 16,
     fontWeight: 'bold',
+    fontFamily: 'Sora',
   },
   disabledButton: {
     backgroundColor: '#cc771a',

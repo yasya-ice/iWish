@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
 import type { AuthMode } from './Auth'; 
 import { LOGO_SOURCE } from './Auth'; // Impordin logo
 import { LinearGradient } from 'expo-linear-gradient';
+import { ThemedButton } from '@/components/themed-button';
 
 // Määran Propide tüübi
 interface WelcomeScreenProps {
@@ -34,7 +35,7 @@ export default function WelcomeScreen({ setMode }: WelcomeScreenProps) {
         
         {/* Sign In nupp */}
         <TouchableOpacity 
-          style={styles.bigOrangeButton}
+          style={[styles.bigOrangeButton, {backgroundColor: '#c67c4e'}]}
           onPress={() => setMode('signIn')}
         >
           <Text style={styles.bigOrangeButtonText}>Sign In</Text>
@@ -75,7 +76,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '600',
     color: '#ffffff',
-    fontFamily: 'Sora_600SemiBold',
+    fontFamily: 'Sora',
     textAlign: 'center',
     marginTop: 85,
     textTransform: 'capitalize',
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
   },
   highlightText: {
     color: '#F2E9C2',
-    fontFamily: 'Sora_600SemiBold',
+    fontFamily: 'Sora',
   },
   welcomeButtonsContainer: {
     width: '100%',
@@ -108,6 +109,7 @@ const styles = StyleSheet.create({
   fontSize: 16,
   fontWeight: '600',
   lineHeight: 24,
+  fontFamily: 'Sora',
   },
 
   buttonSpacing: {
