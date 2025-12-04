@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import { useEffect, useState } from 'react';
+import Feather from '@expo/vector-icons/Feather';
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
@@ -8,6 +9,15 @@ import { customTabBarStyle } from "@/constants/tab-bar";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+    const [fontLoaded, setFontLoaded] = useState(false);
+
+  useEffect(() => {
+    // Load the Feather icon font
+    Feather.loadFont().then(() => setFontLoaded(true));
+  }, []);
+
+  if (!fontLoaded) return null; // or a splash/loading screen
+
 
   return (
     <Tabs

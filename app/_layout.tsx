@@ -14,6 +14,7 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const fonts = useFonts({
     'Lato': require('@/assets/fonts/Lato-Regular.ttf'),
+    'Sora': require('@/assets/fonts/Sora-Regular.ttf')
   });
 
   return (
