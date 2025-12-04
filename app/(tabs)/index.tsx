@@ -7,13 +7,15 @@ import { Session } from '@supabase/supabase-js'; // Session tüüp
 import { useNavigation } from 'expo-router';
 import { customTabBarStyle } from "@/constants/tab-bar";
 import { ThemedButton } from '@/components/themed-button';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import Wishlist from '@/components/Wishlist';
+import AppModal from '@/components/app-modal';
 
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
 
 export default function App() {
+  const [modalVisible, setModalVisible] = useState(false);
+
   const [session, setSession] = useState<Session | null>(null);
   const navigation = useNavigation(); 
   
@@ -74,11 +76,20 @@ export default function App() {
             <ThemedButton 
               tone="border"
               title={'\uff0b Add iWish'}
-              onPress={signOut} 
+              onPress={() => setModalVisible(true)} 
               style={styles.homeNavButton}
             />
           </View>
           <Wishlist cameTrue={cameTrue}/>
+          <AppModal
+            visible={modalVisible}
+            onClose={() => setModalVisible(false)}
+            title="This is a modal"
+          >
+            <View>
+              <ThemedButton title="Do something inside modal" onPress={() => alert("Clicked!")} />
+            </View>
+          </AppModal>
         </>
       ) : (
         // Kui seanssi pole, kuva autentimise vorm
