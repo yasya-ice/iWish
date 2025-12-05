@@ -9,6 +9,7 @@ import { customTabBarStyle } from "@/constants/tab-bar";
 import { ThemedButton } from '@/components/themed-button';
 import Wishlist from '@/components/Wishlist';
 import AppModal from '@/components/app-modal';
+import AddWish from '@/components/AddWish';
 
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
@@ -86,9 +87,7 @@ export default function App() {
             onClose={() => setModalVisible(false)}
             title="Add a wish"
           >
-            <View>
-              <ThemedButton title="Do something inside modal" onPress={() => alert("Clicked!")} />
-            </View>
+            <AddWish />
           </AppModal>
         </>
       ) : (
