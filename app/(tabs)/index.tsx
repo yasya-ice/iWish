@@ -84,7 +84,7 @@ export default function App() {
           <AppModal
             visible={modalVisible}
             onClose={() => setModalVisible(false)}
-            title="This is a modal"
+            title="Add a wish"
           >
             <View>
               <ThemedButton title="Do something inside modal" onPress={() => alert("Clicked!")} />

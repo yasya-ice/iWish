@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-type Variant = 'default' | 'secondary';
+type Variant = 'default' | 'secondary' | 'dark';
 type Tone = 'solid' | 'transparent' | 'border';
 
 type ThemedButtonProps = {
@@ -17,16 +17,19 @@ type ThemedButtonProps = {
 const solidBackgrounds: Record<Variant, string> = {
   default: '#f5a858',
   secondary: '#c67c4e',
+  dark: '#000',
 };
 
 const solidTitles: Record<Variant, string> = {
   default: '#fff',
   secondary: '#fff',
+  dark: '#fff',
 };
 
 const transparentTitles: Record<Variant, string> = {
   default: '#f5a858',
   secondary: '#c67c4e',
+  dark: '#000',
 };
 
 export function ThemedButton({
