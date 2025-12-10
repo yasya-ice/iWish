@@ -1,45 +1,82 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
-import { useThemeColor } from '@/hooks/use-theme-color';
+
+type Variant = 'default' | 'secondary' | 'dark';
+type Tone = 'solid' | 'transparent' | 'border';
 
 type ThemedButtonProps = {
-  type?: 'default' | 'dark' | 'transparent';
+  variant?: Variant;
+  tone?: Tone;
   title: string | React.ReactNode;
   onPress: () => void;
   style?: object;
   titleStyle?: object;
+  disabled?: boolean;
+};
+
+const solidBackgrounds: Record<Variant, string> = {
+  default: '#f5a858',
+  secondary: '#c67c4e',
+  dark: '#000',
+};
+
+const solidTitles: Record<Variant, string> = {
+  default: '#fff',
+  secondary: '#fff',
+  dark: '#fff',
+};
+
+const transparentTitles: Record<Variant, string> = {
+  default: '#f5a858',
+  secondary: '#c67c4e',
+  dark: '#000',
 };
 
 export function ThemedButton({
-  type = 'default',
+  variant = 'default',
+  tone = 'solid',
   title,
   onPress,
   style,
-  titleStyle
+  titleStyle,
+  disabled = false,
 }: ThemedButtonProps) {
 
-  const backgroundColors = {
-    default: '#c67c4e',
-    dark: '#955d3b',
-    transparent: 'transparent'
-  };
+  const backgroundColor =
+    tone === 'solid' 
+      ? solidBackgrounds[variant]
+      : 'transparent';
 
-  const titleColors = {
-    default: '#fff',
-    dark: '#fff',
-    transparent: '#c67c4e'
-  };
+  const textColor =
+    tone === 'solid'
+      ? solidTitles[variant]
+      : transparentTitles[variant]
 
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.buttonBase, { backgroundColor: backgroundColors[type] }, style]}
+      disabled={disabled}
+      style={[styles.buttonBase, 
+        { 
+          backgroundColor,
+          borderColor: 
+            tone === 'border'
+              ? textColor 
+              : 'transparent'
+        }, 
+        disabled && styles.disabled, 
+        style]}
     >
       {typeof title === 'string' ? (
-        <Text style={[styles.titleBase, titleStyle, { color: titleColors[type] }]}>{title}</Text>
+        <Text 
+          numberOfLines={1}      
+          ellipsizeMode="tail" 
+          style={[styles.titleBase, { color: textColor }, titleStyle]}>
+          {title}
+        </Text>
       ) : (
         React.cloneElement(title as React.ReactElement<any>, {
-          color: titleColors[type],
+          color: textColor,
         })
       )}
     </Pressable>
@@ -48,17 +85,21 @@ export function ThemedButton({
 
 const styles = StyleSheet.create({
   buttonBase: {
-    height: 60,
-    padding: 12,
-    borderRadius: 8,
+    height: 40,
+    borderWidth: 1,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
   },
   titleBase: {
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: 'Lato',
     fontSize: 16,
     fontWeight: 700,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'visible',
   },
+  disabled: {
+    opacity: 0.4,
+  }
 })
