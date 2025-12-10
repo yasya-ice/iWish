@@ -87,6 +87,31 @@ export default function AddWish({ onCloseModal }: { onCloseModal: () => void }) 
     onCloseModal();
   }
 
+//Pildi tegemise loogika
+const takePhoto = async () => {
+  // 1. Küsi kaamera ja meediakogu (et tehtud pilti salvestada) õiguseid
+  const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+  const { status: mediaLibraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+  if (cameraStatus !== 'granted' || mediaLibraryStatus !== 'granted') {
+    Alert.alert('Permission needed', 'Sorry, we need camera and photo library permissions to take and save a picture!');
+    return;
+  }
+
+  // 2. Käivita kaamera
+  let result = await ImagePicker.launchCameraAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsEditing: true, // Lubab kasutajal pilti lõigata
+    aspect: [4, 3], 
+    quality: 1, 
+  });
+
+  if (!result.canceled) {
+    // 3. Salvesta tehtud pildi URI olekusse
+    setImageUri(result.assets[0].uri);
+  }
+};
+
   // Pildi valimise loogika
   const pickImage = async () => {
     // Kontrollime õiguseid (Android/iOS)
@@ -123,7 +148,9 @@ export default function AddWish({ onCloseModal }: { onCloseModal: () => void }) 
         errorMessage={errorMessage}
         addWish={addWish}
         imageUri={imageUri}
-        onPickImage={pickImage} />
+        onPickImage={pickImage}
+        onTakePhoto={takePhoto}
+        />
     </View>
   );
 }

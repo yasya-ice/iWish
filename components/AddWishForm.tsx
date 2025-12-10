@@ -16,6 +16,7 @@ interface AddWishFormProps {
   addWish: () => void;
   imageUri: string | null;
   onPickImage: () => void;
+  onTakePhoto: () => void;
 }
 
 export default function AddWishForm({
@@ -31,18 +32,20 @@ export default function AddWishForm({
   //Propide vastuvõtmine
   imageUri,
   onPickImage,
+  onTakePhoto,
 }: AddWishFormProps) {
     
   // Nupu keelamine
   const isDisabled = loading || !title
 
-  const handleOpenCamera = () => Alert.alert("Open camera")
+  //const handleOpenCamera = () => Alert.alert("Open camera")
+  const handleOpenCamera = onTakePhoto //käivita onTakePhoto
   //const handleUpload = () => Alert.alert("Upload file form device")
   const handleUpload = onPickImage
 
   return (
     <View>
-        {/* Tiitle */}
+        {/* Tiitel */}
         <View style={styles.verticallySpaced}>
           <Text style={styles.label}>Title:</Text>
           <TextInput
@@ -89,8 +92,8 @@ export default function AddWishForm({
           <View style={styles.addImage}>
             <Text style={styles.label}>Add a picture:</Text>
             <View style={styles.addImageBtn}>
-
-{/*Kuva valitud pilt*/}
+              
+              {/*Kuva valitud pisipilt*/}
               {imageUri && (
                 <Image source={{ uri: imageUri }} style={styles.thumbnail} />
               )}
