@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, TextInput, Alert, TouchableOpacity} from 'react-native';
+import { StyleSheet, View, Text, TextInput, Alert, TouchableOpacity, Image} from 'react-native';
 import { ThemedButton } from '@/components/themed-button';
 import Feather from '@expo/vector-icons/Feather';
 
@@ -14,6 +14,8 @@ interface AddWishFormProps {
   loading: boolean;
   errorMessage: string | null;
   addWish: () => void;
+  imageUri: string | null;
+  onPickImage: () => void;
 }
 
 export default function AddWishForm({
@@ -26,13 +28,17 @@ export default function AddWishForm({
   loading,
   errorMessage,
   addWish,
+  //Propide vastuvõtmine
+  imageUri,
+  onPickImage,
 }: AddWishFormProps) {
     
   // Nupu keelamine
   const isDisabled = loading || !title
 
   const handleOpenCamera = () => Alert.alert("Open camera")
-  const handleUpload = () => Alert.alert("Upload file form device")
+  //const handleUpload = () => Alert.alert("Upload file form device")
+  const handleUpload = onPickImage
 
   return (
     <View>
@@ -83,9 +89,16 @@ export default function AddWishForm({
           <View style={styles.addImage}>
             <Text style={styles.label}>Add a picture:</Text>
             <View style={styles.addImageBtn}>
+
+{/*Kuva valitud pilt*/}
+              {imageUri && (
+                <Image source={{ uri: imageUri }} style={styles.thumbnail} />
+              )}
+              {/* Kaamera */}
               <TouchableOpacity onPress={handleOpenCamera}>
                 <Feather name="camera" size={30} color="black" />
               </TouchableOpacity>
+              {/* Galerii */}
               <TouchableOpacity onPress={handleUpload}>
                 <Feather name="image" size={30} color="black" />
               </TouchableOpacity>
@@ -201,6 +214,13 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     textDecorationLine: 'underline',
+  },
+  thumbnail: { //stiil pisipildile
+    width: 40, 
+    height: 40,
+    borderRadius: 5,
+    marginRight: 10,
+    backgroundColor: '#eee'
   },
 
   // --- VEATEADE ---

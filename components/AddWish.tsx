@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Alert, StyleSheet, View, Dimensions } from 'react-native';
 import { supabase } from '../utils/supabase';
+import * as ImagePicker from 'expo-image-picker';
 
 // Impordin abikomponendid
 import AddWishForm from './AddWishForm';
@@ -8,12 +9,13 @@ import AddWishForm from './AddWishForm';
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
 
-export default function AddWish() {
+export default function AddWish({ onCloseModal }: { onCloseModal: () => void }) {
   const [title, setTitle] = useState('')
   const [link, setLink] = useState('')
   const [description, setDescription] = useState('') 
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null) 
+  const [imageUri, setImageUri] = useState<string | null>(null);
   
   // Puhastab veateate ja seab laadimise
   const startSave = () => {
@@ -80,9 +82,33 @@ export default function AddWish() {
 
   async function addWish() {
     startSave()
+    //siia vaja luua supabase salvestamise loogika
     Alert.alert("Wish added")
+    onCloseModal();
   }
 
+  // Pildi valimise loogika
+  const pickImage = async () => {
+    // Kontrollime õiguseid (Android/iOS)
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Sorry, we need camera roll permissions to make this work!');
+      return;
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true, // Lubab kasutajal pilti lõigata
+      aspect: [4, 3], // Pildi suhe
+      quality: 1, // Kvaliteet
+    });
+
+    if (!result.canceled) {
+      // Salvestame pildi URI
+      setImageUri(result.assets[0].uri);
+    }
+
+  };
   // Peamine renderdamine: valib vaate
   return (
     <View style={styles.addWishContainer}>
@@ -95,7 +121,9 @@ export default function AddWish() {
         setDescription={setDescription}
         loading={loading}
         errorMessage={errorMessage}
-        addWish={addWish} />
+        addWish={addWish}
+        imageUri={imageUri}
+        onPickImage={pickImage} />
     </View>
   );
 }
