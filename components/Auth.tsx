@@ -1,133 +1,74 @@
 import React, { useState } from 'react';
-import { Alert, StyleSheet, View, Dimensions } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { supabase } from '../utils/supabase';
-
-// Impordin abikomponendid
 import WelcomeScreen from './WelcomeScreen';
 import AuthForm from './AuthForm';
+import PasswordReset from './PasswordReset'; 
 
-// Määran tüübid vaadete jaoks
-export type AuthMode = 'welcome' | 'signIn' | 'signUp';
+export type AuthMode = 'welcome' | 'signIn' | 'signUp' | 'forgotPassword';
 
-// Global pildi allikad (et vältida lokaalset 'require' viga)
-// HOIATUS: Lokaalseid pilte require('../assets/logo.png') ei saa siin keskkonnas kuvada.
+// Global pildi allikad
 export const LOGO_SOURCE = require('../assets/splash-logo.png');
 export const GOOGLE_ICON = { uri: 'https://img.icons8.com/color/48/000000/google-logo.png' };
 export const FACEBOOK_ICON = { uri: 'https://img.icons8.com/?size=100&id=106163&format=png&color=228BE6' };
 
-const screenHeight = Dimensions.get('window').height;
-const screenWidth = Dimensions.get('window').width;
+// Defineerime, et Auth võtab vastu funktsiooni
+interface AuthProps {
+  onReadyForPasswordUpdate: () => void;
+}
 
-export default function Auth() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  // Eemaldan 'name' oleku, kuna Supabase'i põhiautentimine seda ei nõua
-  const [name, setName] = useState('') 
-  const [loading, setLoading] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null) 
+export default function Auth({ onReadyForPasswordUpdate }: AuthProps) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [mode, setMode] = useState<AuthMode>('welcome');
   
-  // Puhastab veateate ja seab laadimise
-  const startAuth = () => {
-    setLoading(true)
-    setErrorMessage(null)
-  }
+  const startAuth = () => { setLoading(true); setErrorMessage(null); }
+  const finishAuth = () => { setLoading(false); }
 
-  // Lõpetab autentimise
-  const finishAuth = () => {
-    setLoading(false)
-  }
-
-  // Sisselogimise funktsioon (TAASTAMINE)
   async function signInWithEmail() {
-    startAuth()
-
-    // Kasutan Supabase'i funktsiooni signInWithPassword
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
-    })
-
-    if (error) {
-      // Supabase'i viga kuvatakse kasutajale
-      setErrorMessage(error.message)
-    }
-    
-    // EDUKA Sisselogimise korral App.tsx-i onAuthStateChange kuulaja
-    // püüab seansi muutuse ja renderdab sisselogitud vaate.
-    
-    finishAuth()
+    startAuth();
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) setErrorMessage(error.message);
+    finishAuth();
   }
 
-  // Registreerimise funktsioon (TAASTAMINE)
   async function signUpWithEmail() {
-    startAuth()
-
-    // Kasutan Supabase'i funktsiooni signUp
+    startAuth();
     const { error } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-      // Supabase'i v2-s pole vaja 'name'-i
-      // data: { name: name } // Vajalik, kui tahaksite profiili metaandmeid lisada
-    })
-
-    if (error) {
-      setErrorMessage(error.message)
-    } else {
-      // Edukas registreerimine, e-posti kinnitusvajadus
-      Alert.alert(
-        "Kinnitusvajalik",
-        "Palun kinnita oma e-posti aadress, et sisse logida. Kontrolli oma postkasti!",
-        [{ text: "OK" }]
-      );
-      // Puhasta vormi väljad ja liigu sisselogimise vaatesse
-      setEmail('');
-      setPassword('');
-      setName('');
-      setMode('signIn'); 
-    }
-    
-    finishAuth()
+      email, password, options: { data: { full_name: name } }
+    });
+    if (error) setErrorMessage(error.message);
+    else { Alert.alert("Konto loodud!", "Palun kinnita e-post."); setMode('signIn'); }
+    finishAuth();
   }
 
-  // Peamine renderdamine: valib vaate
-  switch (mode) {
-    case 'welcome':
-      return (
-        <View style={styles.authContainer}>
-          <WelcomeScreen setMode={setMode} />
-        </View>
-      );
-    case 'signIn':
-    case 'signUp':
-      return (
-        <View style={styles.authContainer}>
-          <AuthForm
-          mode={mode}
-          setMode={setMode}
-          email={email}
-          setEmail={setEmail}
-          password={password}
-          setPassword={setPassword}
-          name={name}
-          setName={setName}
-          loading={loading}
-          errorMessage={errorMessage}
-          signInWithEmail={signInWithEmail}
-          signUpWithEmail={signUpWithEmail} />
-        </View>
-      );
-    default:
-      return <WelcomeScreen setMode={setMode} />;
-  }
+  return (
+    <View style={styles.authContainer}>
+      {mode === 'welcome' && <WelcomeScreen setMode={setMode} />}
+      
+      {(mode === 'signIn' || mode === 'signUp') && (
+        <AuthForm
+          mode={mode} setMode={setMode} email={email} setEmail={setEmail}
+          password={password} setPassword={setPassword} name={name} setName={setName}
+          loading={loading} errorMessage={errorMessage}
+          signInWithEmail={signInWithEmail} signUpWithEmail={signUpWithEmail} 
+        />
+      )}
+
+      {mode === 'forgotPassword' && (
+        <PasswordReset 
+          onBack={() => setMode('signIn')} 
+          // TÄHTIS: Anname funktsiooni edasi!
+          onVerified={onReadyForPasswordUpdate}
+        />
+      )}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-  authContainer: {
-    flex: 1, 
-    minHeight: screenHeight, 
-    minWidth: screenWidth,
-    alignSelf: 'center',
-  }
-    // Vaikimisi stiile pole vaja, kuna alamkomponendid haldavad tausta ja paigutust.
+  authContainer: { flex: 1, backgroundColor: '#000000', width: '100%', height: '100%' }
 });

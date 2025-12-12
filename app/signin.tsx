@@ -1,85 +1,76 @@
+import 'react-native-url-polyfill/auto'; 
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, Button, Alert } from 'react-native'; // Lisasime Button ja Alert
-// See import viitab Sinu puhastatud failile utils/supabase
-import { supabase } from '../utils/supabase'; 
-import Auth from '../components/Auth'; // Sisselogimise/Registreerimise vaade
-import { Session } from '@supabase/supabase-js'; // Session tüüp
+import { View, StyleSheet, Text, Button, ActivityIndicator } from 'react-native'; 
+// Veendu, et impordid vastavad sinu failistruktuurile (kas @/ või ../)
+import { supabase } from '@/utils/supabase'; 
+import Auth from '@/components/Auth'; 
+import PasswordChange from '@/components/PasswordChange';
+import { Session } from '@supabase/supabase-js'; 
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
+  const [initialized, setInitialized] = useState(false);
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
 
   useEffect(() => {
-    // 1. Kontrolli seansi olekut käivitamisel
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      setInitialized(true); 
     });
 
-    // 2. Seadista reaalajas kuulaja olekumuutustele
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Supabase Event:", event); 
+
+      // See on automaatne tuvastus (nt lingist tulles)
+      if (event === 'PASSWORD_RECOVERY') {
+        setShowPasswordChange(true);
+      }
+      
       setSession(session);
     });
     
-    // Puhasta kuulaja komponendi eemaldamisel
     return () => subscription.unsubscribe();
   }, []);
 
-  // Väljalogimise funktsioon
-  async function signOut() {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-        Alert.alert("Väljalogimise viga", error.message);
-    }
-  }
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setShowPasswordChange(false);
+  };
+
+  if (!initialized) return <View style={styles.center}><ActivityIndicator size="large" color="#F5A858" /></View>;
 
   return (
     <View style={styles.container}>
-      {/* Kui seanss on olemas, kuva sisselogitud sisu */}
-      {session && session.user ? (
-        <View style={styles.loggedInContainer}>
-          <Text style={styles.welcomeText}>
-            Tere tulemast, {session.user.email}! (Sisselogitud)
-          </Text>
-          
-          {/* UUS: Väljalogimise nupp */}
-          <View style={styles.signOutButtonContainer}>
-              <Button 
-                title="Logi välja" 
-                onPress={signOut} 
-                color="#ef4444" // Punane nupp väljalogimiseks
-              />
-          </View>
-
+      
+      {/* 1. KAS NÄITAME PAROOLI VAHETUST? (Kõrgeim prioriteet) */}
+      {showPasswordChange ? (
+        <PasswordChange onSuccess={handleLogout} />
+      ) 
+      
+      /* 2. KASUTAJA ON SISSE LOGITUD? */
+      : session && session.user ? (
+        <View style={styles.center}>
+          <Text style={{color: 'white', fontSize: 20}}>Tere tulemast!</Text>
+          <Text style={{color: '#ccc', marginBottom: 20}}>{session.user.email}</Text>
+          <Button title="Logi välja" onPress={handleLogout} color="#ef4444" />
         </View>
-      ) : (
-        // Kui seanssi pole, kuva autentimise vorm
-        <Auth />
+      ) 
+      
+      /* 3. KASUTAJA ON VÄLJAS? (Auth vaade) */
+      : (
+        <Auth 
+          // See funktsioon kutsutakse siis, kui kood on edukalt sisestatud
+          onReadyForPasswordUpdate={() => {
+             console.log("App.tsx sai signaali! Avan parooli muutmise vaate.");
+             setShowPasswordChange(true);
+          }} 
+        />
       )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    justifyContent: 'center', 
-    alignItems: 'stretch',
-    padding: 20,
-  },
-  loggedInContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  welcomeText: {
-    fontSize: 20, 
-    textAlign: 'center',
-    marginBottom: 20,
-    fontWeight: '600',
-  },
-  signOutButtonContainer: {
-    marginTop: 20,
-    width: '100%',
-    maxWidth: 200, // Piirame nupu laiust
-  }
+  container: { flex: 1, backgroundColor: '#000000' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#000000' }
 });
