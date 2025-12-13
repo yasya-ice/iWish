@@ -135,13 +135,13 @@ async function uploadImage(uri: string, userId: string): Promise<string | null> 
   // Loome kordumatu failinime, et vältida konflikte
   const fileName = `${userId}/${Date.now()}.${fileExtension}`; 
   
-  // 1. Tõmbame pildi binaarandmed
+  // 1. tõmbab pildi binaarandmed
   const response = await fetch(uri);
   const blob = await response.blob();
   
   // 2. Laadime Supabase Storage'i
   const { data, error } = await supabase.storage
-    .from('wish_images') // Teie Storage Bucket'i nimi
+    .from('wish_images') //Storage Bucket'i nimi
     .upload(fileName, blob, {
       cacheControl: '3600',
       upsert: false,
@@ -164,7 +164,7 @@ async function addWish() {
 const { data: userData } = await supabase.auth.getUser(); // Kasutan userData, et vältida nimede konflikti
 const user = userData.user; // 'user' = ainult kasutajaandmed
 
-if (!user) { // Nüüd kontrollite otse kasutaja objekti
+if (!user) { // Nüüd kontrollib otse kasutaja objekti
   setErrorMessage("Kasutaja pole sisse logitud.");
   return;
 }
@@ -205,7 +205,7 @@ if (!user) { // Nüüd kontrollite otse kasutaja objekti
     setLink('');
     setDescription('');
     setImageUri(null);
-    onCloseModal(); // Eeldab, et võtate vastu onCloseModal propina!
+    onCloseModal(); // Eeldab, et võtad vastu onCloseModal propina!
 
   } catch (error: any) {
     setErrorMessage(error.message || "Tundmatu viga salvestamisel.");

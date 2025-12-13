@@ -1,6 +1,10 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, Dimensions, Alert, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; // Uus import ikoonide jaoks
+import { ThemedButton } from '@/components/themed-button';
+import { supabase } from '@/utils/supabase';
+import { Feather } from '@expo/vector-icons';
+
 
 interface Wish {
   id: number;
@@ -21,25 +25,10 @@ interface WishItemProps {
 }
 
 export default function WishItem({ wish, onMarkComplete, onDelete }: WishItemProps) {
-
-  const confirmDelete = () => {
-    Alert.alert(
-      "Kinnita kustutamine",
-      `Oled sa kindel, et soovid soovi "${wish.title}" eemaldada?`,
-      [
-        { text: "Tühista", style: "cancel" },
-        {
-          text: "Kustuta",
-          onPress: () => onDelete(wish.id),
-          style: "destructive"
-        }
-      ]
-    );
-  };
   
   // "Linnukese" ikoon, kui soov tehtud
   const completeIconName = wish.came_true ? 'checkmark-circle' : 'ellipse-outline'; 
-  const completeIconColor = wish.came_true ? '#00cc00' : '#ff9800'; // Roheline vs Oranž
+  const completeIconColor = wish.came_true ? '#ff9800' : '#ff9800'; // Roheline vs Oranž
 
   return (
     <View style={styles.card}>
@@ -55,13 +44,14 @@ export default function WishItem({ wish, onMarkComplete, onDelete }: WishItemPro
       )}
       
       {/* -------------------- 1. KUSTUTAMISE NUPP (X) -------------------- */}
-      <TouchableOpacity 
-        style={styles.deleteButton} 
-        onPress={confirmDelete}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} 
-      >
-        <Text style={styles.deleteButtonText}>×</Text> 
-      </TouchableOpacity>
+<TouchableOpacity 
+    // Kasutame stiile, mille me defineerisime allpool
+    style={styles.closeButton} 
+    onPress={() => onDelete(wish.id)} //kustutamise funktsioon ja otsekäivitus
+    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} 
+>
+    <Feather name='x' size={20} color="#000000ff" /> 
+</TouchableOpacity>
       
       {/* -------------------- 2. INFO KONTEINER (Tõstetud "õhku") -------------------- */}
       <View style={styles.infoContainer}>
@@ -78,7 +68,7 @@ export default function WishItem({ wish, onMarkComplete, onDelete }: WishItemPro
           >
             <Ionicons 
               name={completeIconName as any} 
-              size={24} 
+              size={35} 
               color={completeIconColor} 
             />
           </TouchableOpacity>
@@ -136,7 +126,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   
-  // --- UUS: PEALKIRJA JA NUPU RIDA ---
+  //PEALKIRJA JA NUPU RIDA ---
   titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -155,24 +145,24 @@ const styles = StyleSheet.create({
   },
   
   // --- KUSTUTAMISE NUPP ---
-  deleteButton: {
+  closeButton: {
     position: 'absolute',
-    top: 5,
-    right: 5,
-    zIndex: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    borderRadius: 15,
+    right: 10,
+    top: 10,
     width: 25,
     height: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderColor: '#ccc',
+    borderRadius: 10,
     borderWidth: 1,
+    borderColor: '#000000ff',
+    backgroundColor: '#ffffff42', 
+    justifyContent: 'center', 
+  alignItems: 'center',
+  zIndex: 10,
   },
   deleteButtonText: {
     fontSize: 18,
     lineHeight: 20,
-    color: '#333',
+    color: '#c67c4e',
     fontWeight: '600',
   },
   // --- TEE TEHTUKS IKON-NUPP ---

@@ -11,6 +11,29 @@ import Wishlist from '@/components/Wishlist';
 import AppModal from '@/components/app-modal';
 import AddWish from '@/components/AddWish';
 
+const deleteWish = async (wishId: number) => {
+  try {
+    // Kustutamise päring Supabase'ile
+    const { error } = await supabase
+      .from('wishes') // Teie tabeli nimi
+      .delete()        // Kustutamise käsk
+      .eq('id', wishId); // Kustuta RIDA, mille ID vastab antud wishId-le
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    // Pärast edukat kustutamist: värskenda soovide nimekirja
+    // See peaks kutsuma funktsiooni, mis tõmbab andmed uuesti
+    // näiteks: fetchWishes(); 
+    
+    Alert.alert("Eemaldatud", "Soov kustutati edukalt.");
+
+  } catch (error: any) {
+    Alert.alert("Viga kustutamisel", error.message);
+  }
+};
+
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
 
