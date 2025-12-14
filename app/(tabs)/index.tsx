@@ -116,7 +116,7 @@ export default function App() {
         </>
       ) : (
         // Kui seanssi pole, kuva autentimise vorm
-        <Auth />
+        <Auth onReadyForPasswordUpdate={() => {}} />
       )}
     </View>
   );

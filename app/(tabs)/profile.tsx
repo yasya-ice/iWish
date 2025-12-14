@@ -66,7 +66,12 @@ export default function App() {
         </View>
       ) : (
         // Kui seanssi pole, kuva autentimise vorm
-        <Auth />
+        <Auth 
+            onReadyForPasswordUpdate={() => {
+                // Konsoolis testimiseks, kui funktsioon peaks midagi tegema
+                // console.log("Password update process started."); 
+            }}
+        />
       )}
     </View>
   );

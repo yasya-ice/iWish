@@ -3,7 +3,7 @@ import { Alert, StyleSheet, View, Dimensions, Text, TouchableOpacity } from 'rea
 // Kuigi me seda siin otse ei kasuta, on hea see faili struktuuris hoida
 // import { supabase } from '../utils/supabase'; 
 // Asenda see impordiga, mis viitab teie friendService.ts failile
-import { searchUsersByUsername, sendFriendRequest } from '../services/friendService';
+import { searchUsersByUsername, sendFriendRequest, UserProfile } from '@/services/friendService';
 
 // Impordin abikomponendi
 import AddFriendForm from './AddFriendForm';
@@ -60,7 +60,7 @@ export default function AddFriend({
       }
       
       // Eeldame, et võtame esimese vaste (või peaksite arendama parema valiku/kinnituse)
-      const targetUser = searchResults[0]; 
+      const targetUser = searchResults[0];
       
       // 2. Saadame sõprusettepaneku
       // Kasutame targetUser.id (see on profiles tabeli ID)

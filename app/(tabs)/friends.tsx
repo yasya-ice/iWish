@@ -6,6 +6,8 @@ import {
   acceptFriendRequest,
   searchUsersByUsername,
   sendFriendRequest,
+  deleteFriendship,
+  UserProfile,
   Friend // Impordime Friend tüübi, mille defineerisime services/friendService.ts failis
 } from '@/services/friendService'; // Asenda õige teega
 import { ThemedButton } from '@/components/themed-button';
@@ -14,6 +16,8 @@ import AddWish from '@/components/AddWish';
 import Wishlist from '@/components/Wishlist';
 import AddWishForm from '@/components/AddWishForm';
 import AddFriend from '@/components/AddFriend'; // Asenda õige teega
+import { Feather } from '@expo/vector-icons'; // Uus import ikoonide jaoks
+
 
 //PÕHIKOMPONENT JA ANDMETE LAADIMINE:
 export default function FriendsScreen() {
@@ -46,28 +50,24 @@ export default function FriendsScreen() {
 
 //TEGEVUSTE HALDURID:
 // --- A. SÕBRA EEMALDAMINE ---
-  const handleRemoveFriend = async (friendshipId: number) => {
-    Alert.alert(
-      'Kinnitus', 
-      'Kas oled kindel, et soovid sõbra eemaldada?',
-      [
-        { text: 'Tühista', style: 'cancel' },
-        { 
-          text: 'Eemalda', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await removeFriend(friendshipId);
-              loadFriends(); // Värskendame nimekirja
-              Alert.alert('Eemaldatud', 'Sõber eemaldati edukalt.');
-            } catch (error) {
-              Alert.alert('Viga', 'Sõbra eemaldamine ebaõnnestus.');
-            }
-          }
-        }
-      ]
-    );
-  };
+/**
+ * Käitleb sõpruse kustutamist
+ * @param friendProfileId - Eemaldatava sõbra Profiili ID
+ */
+async function handleDeleteFriend(friendProfileId: string) {
+    console.log("DEBUG: Eemaldamise katse profiilile:", friendProfileId); 
+    
+    try {
+        await deleteFriendship(friendProfileId);
+        
+        console.log("DEBUG: Kustutamine õnnestus, laadin uuesti.");
+        loadFriends(); 
+        
+    } catch (error: any) {
+        console.error("KRIITILINE VIGA TEENUSE FUNKTSIOONIST:", error);
+        Alert.alert("Viga", error.message || "Tundmatu VIGA.");
+    }
+}
   
   // --- B. SÕPRUSETTEPANEKU VASTUVÕTMINE ---
   const handleAcceptRequest = async (friendshipId: number) => {
@@ -90,11 +90,16 @@ export default function FriendsScreen() {
       <Text style={styles.friendRelationship}>{item.relationship}</Text>
       
       {/* Eemaldamise nupp (ainult Accepted sõpradel) */}
-      {item.status === 'accepted' && (
-        <TouchableOpacity onPress={() => handleRemoveFriend(item.id)} style={styles.removeButton}>
-          <Text style={styles.removeButtonText}>X</Text>
-        </TouchableOpacity>
-      )}
+
+<TouchableOpacity 
+    // Kasutame stiile, mille me defineerisime allpool
+    style={styles.closeButton} 
+    onPress={() => handleDeleteFriend(item.profile_id)} //kustutamise funktsioon ja otsekäivitus
+    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} 
+>
+    <Feather name='x' size={20} color="#000000ff" /> 
+</TouchableOpacity>
+
       
       {/* Kinnitamise nupp (kui keegi teine on saatnud mulle ettepaneku) */}
       {item.status === 'pending' && (
@@ -134,9 +139,9 @@ export default function FriendsScreen() {
       
       {/* Ülemine navigeerimisriba ja Lisa sõber nupp */}
       <View style={styles.header}>
-        <Text style={styles.title}>Minu sõbrad</Text>
+        <Text style={styles.title}>My friends</Text>
         <TouchableOpacity onPress={() => setIsAddFriendModalVisible(true)} style={styles.addButton}>
-          <Text style={styles.addButtonText}>Lisa sõber</Text> 
+          <Text style={styles.addButtonText}>+ friend</Text> 
         </TouchableOpacity>
       </View>
 
@@ -157,7 +162,7 @@ export default function FriendsScreen() {
           )}
 
           {/* Kinnitatud sõbrad */}
-          <Text style={styles.sectionTitle}>Kinnitatud sõbrad</Text>
+          <Text style={styles.sectionTitle}>Verified friends</Text>
           {acceptedFriends.length === 0 ? (
             <Text style={styles.emptyText}>Sõpru pole veel lisatud.</Text>
           ) : (
@@ -233,7 +238,7 @@ const styles = StyleSheet.create({
   },
   friendRelationship: {
     color: '#888',
-    marginRight: 10,
+    marginRight: 40,
   },
   removeButton: {
     padding: 8,
@@ -243,6 +248,20 @@ const styles = StyleSheet.create({
   removeButtonText: {
     color: 'red',
     fontWeight: 'bold',
+  },
+  closeButton: {
+    position: 'absolute',
+    right: 10,
+    top: 10,
+    width: 25,
+    height: 25,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#000000ff',
+    backgroundColor: '#ffffff42', 
+    justifyContent: 'center', 
+  alignItems: 'center',
+  zIndex: 10,
   },
   acceptButton: {
     padding: 8,
