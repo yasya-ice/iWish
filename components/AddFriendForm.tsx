@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, TextInput, Alert, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TextInput, Keyboard, ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback } from 'react-native';
 import { ThemedButton } from '@/components/themed-button'; // Eeldame, et see on olemas
 import Feather from '@expo/vector-icons/Feather'; // Eeldame, et see on olemas
 
@@ -28,6 +28,10 @@ export default function AddFriendForm({
   const isDisabled = loading || !friendName.trim();
 
   return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
     <View style={styles.formContainer}>
         {/* Nimi/Kasutajanimi */}
         <View style={styles.verticallySpaced}>
@@ -70,19 +74,30 @@ export default function AddFriendForm({
           title={loading ? "Otsin..." : "Add friend"}
         />
       </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
 // Kasutame AddWishForm stiile, kohandades neid veidi
 const styles = StyleSheet.create({
   formContainer: {
-    // Stiilid vormi sisu jaoks
+    width: '100%',
+    alignItems: 'center',
+    borderRadius: 22,
+    backgroundColor: '#FFF',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    justifyContent: 'center',
   },
   label: {
-    fontSize: 14,
-    marginBottom: 4,
     color: '#F5A858',
-    marginLeft: 10
+    fontFamily: 'Sora',
+    fontSize: 18,
+    fontStyle: 'normal',
+    fontWeight: '600',
+    lineHeight: 22,
+    marginBottom: 4,
   },
   verticallySpaced: {
     marginBottom: 15, // Lisa veidi rohkem vahet, et sarnaneda pildile

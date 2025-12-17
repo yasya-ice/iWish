@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Text, TextInput, Image, TouchableOpacity } from 'react-native';
+import { Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import type { AuthMode } from './Auth'; 
 import { LOGO_SOURCE, GOOGLE_ICON, FACEBOOK_ICON } from './Auth'; 
 import { LinearGradient } from 'expo-linear-gradient';
@@ -41,7 +42,15 @@ export default function AuthForm({
     const isDisabled = loading || !email || !password || (isSignUpMode && !name);
 
   return (
-    // MUUDATUS: Gradient on kõige välimine ja flex: 1
+    <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+  >
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+   <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+      > 
     <LinearGradient
       colors={['#0D3245', '#115476', '#000000']}
       locations={[0.3, 0.5, 0.9]}
@@ -150,6 +159,9 @@ export default function AuthForm({
 
         </View>
       </LinearGradient>
+     </ScrollView>
+    </TouchableWithoutFeedback>
+  </KeyboardAvoidingView>
   );
 }
 

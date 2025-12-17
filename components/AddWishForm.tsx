@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, TextInput, Alert, TouchableOpacity, Image} from 'react-native';
+import { StyleSheet, View, Text, TextInput, Image, TouchableOpacity, Keyboard, Platform, ScrollView, KeyboardAvoidingView, TouchableWithoutFeedback } from 'react-native';
 import { ThemedButton } from '@/components/themed-button';
 import Feather from '@expo/vector-icons/Feather';
 
@@ -44,6 +44,16 @@ export default function AddWishForm({
   const handleUpload = onPickImage
 
   return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }}
+          keyboardShouldPersistTaps="handled"
+          onTouchStart={() => Keyboard.dismiss()}
+        >
     <View>
         {/* Tiitel */}
         <View style={styles.verticallySpaced}>
@@ -124,6 +134,10 @@ export default function AddWishForm({
           title={loading ? "Loading..." : "Save"}
         />
       </View>
+     
+     </ScrollView>
+    </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 

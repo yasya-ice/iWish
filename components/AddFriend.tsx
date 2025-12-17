@@ -113,6 +113,7 @@ export default function AddFriend({
 const styles = StyleSheet.create({
     addFriendContainer: {
         width: screenWidth * 0.85, // Muuda laius modaali jaoks sobivaks
+        height: screenHeight * 0.4, // Muuda kõrgus modaali jaoks sobivaks
         padding: 20,
         backgroundColor: 'white',
         borderRadius: 15, // Pildi järgi
