@@ -30,32 +30,26 @@ export async function searchUsersByUsername(searchTerm: string): Promise<UserPro
 }
 
 // Sõbra ettepaneku saatmine (luuakse pending kirje)
-export async function sendFriendRequest(receiverProfileId: string) {
+export async function sendFriendRequest(receiverProfileId: string, relationship?: string) {
     const { data: userData, error: authError } = await supabase.auth.getUser();
     
-    // TEE SEE KONTROLL TÄPSELT NII:
     if (authError || !userData?.user) {
-        throw new Error("Sinu kasutaja ei ole sisse logitud või Autentimisviga.");
+        throw new Error("Autentimisviga.");
     }
 
-  const userId = userData.user.id;
-  const receiverId = receiverProfileId;
+    const { data, error } = await supabase
+        .from('friends')
+        .insert([
+            { 
+                user_id: userData.user.id, 
+                friend_id: receiverProfileId, 
+                status: 'pending',
+                relationship: relationship // SALVESTAME SIIN
+            },
+        ]);
 
-  const { data, error } = await supabase
-    .from('friends')
-    .insert([
-      { 
-        user_id: userId, 
-        friend_id: receiverId, 
-        status: 'pending' // Esialgne staatus
-      },
-    ]);
-
-  if (error) {
-    console.error('Error sending friend request:', error);
-    throw error;
-  }
-  return data;
+    if (error) throw error;
+    return data;
 }
 
 // Andmetüübi defineerimine paremaks tüübiks
@@ -73,17 +67,28 @@ export type Friend = {
  * Tagastab listi, kus iga sõber on profiiliandmetega.
  */
 export async function fetchFriendsList(): Promise<Friend[]> {
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData?.user) {
+  // 1. Küsime kõigepealt kasutaja andmed
+  const { data: authData, error: userError } = await supabase.auth.getUser();
+  
+  if (userError || !authData?.user) {
     throw new Error("Autentimine ebaõnnestus.");
   }
 
-const senderId = userData.user.id;
+  // Defineerime ID, mida varem prooviti valesti lugeda userData küljest
+  const senderId = authData.user.id;
 
-  // Küsime friends tabelist kirjed, kus oleme kas user_id või friend_id
+  // 2. Küsime friends tabelist kirjed
   const { data: relations, error } = await supabase
     .from('friends')
-    .select(`id, status, user_id, friend_id, profiles_user_id:user_id(id, username, avatar_url, full_name), profiles_friend_id:friend_id(id, username, avatar_url, full_name)`)
+    .select(`
+      id, 
+      status, 
+      relationship,
+      user_id, 
+      friend_id, 
+      profiles_user_id:user_id(id, username, avatar_url, full_name), 
+      profiles_friend_id:friend_id(id, username, avatar_url, full_name)
+    `)
     .or(`user_id.eq.${senderId},friend_id.eq.${senderId}`);
 
   if (error) {
@@ -91,35 +96,33 @@ const senderId = userData.user.id;
     throw error;
   }
 
-  // Tulemuste töötlemine ja standardiseerimine
-  const friends: Friend[] = relations.map((rel: any) => {
-    // Teeme kindlaks, kumb on SÕBER (vastaspool)
+  // 3. Töötleme andmed
+  return (relations || []).map((rel: any) => {
     const isCurrentUserInitiator = rel.user_id === senderId;
     
-    // Profiilid, mis vastavad rel.user_id ja rel.friend_id (automaatselt Supabase poolt liidetud)
     const friendProfileData = isCurrentUserInitiator 
       ? rel.profiles_friend_id 
       : rel.profiles_user_id;
 
-    // Teie disainis on "Relationship" (nt. "Granny", "BF"). 
-    // See eeldab, et suhe on salvestatud kusagil, nt. profiilide tabelis, või tuleb seda käsitsi lisada.
-    // Praegu kasutame 'status' + 'username' andmeid.
-    const relationshipLabel = rel.status === 'pending' 
-      ? 'Ootab kinnitust' 
-      : (isCurrentUserInitiator ? 'Sõber (saatsin)' : 'Sõber (vastu võetud)'); // Placeholder
+    // KUVAMISE LOOGIKA:
+    // Kui andmebaasis on relationship olemas, kasutame seda. 
+    // Kui ei ole, siis määrame staatuse järgi teksti.
+    const relationshipLabel = rel.relationship || 
+      (rel.status === 'pending' 
+        ? 'Ootab kinnitust' 
+        : (isCurrentUserInitiator ? 'Sõber (saatsid)' : 'Sõber (vastu võetud)'));
 
     return {
       id: rel.id,
       profile_id: friendProfileData.id,
-      username: friendProfileData.full_name || friendProfileData.username, // kui pole nime, kasuta kasutajanime st emaili
+      username: friendProfileData.full_name || friendProfileData.username,
       avatar_url: friendProfileData.avatar_url,
       relationship: relationshipLabel,
       status: rel.status,
     } as Friend;
   });
-
-  return friends;
 }
+    
 
 /**
  * Võtame vastu sõpruse kutse

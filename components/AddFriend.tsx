@@ -54,7 +54,7 @@ export default function AddFriend({
       const searchResults = await searchUsersByUsername(friendName.trim());
       
       if (searchResults.length === 0) {
-        setErrorMessage(`Kasutajat nimega "${friendName}" ei leitud platvormilt.`);
+        setErrorMessage(`Kasutajat nimega "${friendName}" ei leitud.`);
         finishAction();
         return;
       }
@@ -64,12 +64,12 @@ export default function AddFriend({
       
       // 2. Saadame sõprusettepaneku
       // Kasutame targetUser.id (see on profiles tabeli ID)
-      await sendFriendRequest(targetUser.id);
+      await sendFriendRequest(targetUser.id, relationship.trim());
       
       // 3. Õnnestunud salvestamine
       Alert.alert(
-        "Ettepanek saadetud", 
-        `Sõprusettepanek kasutajale ${targetUser.username} saadetud!`
+        "Saadetud", 
+        `Sõprusettepanek saadetud!`
       );
       
       // Puhasta olekud ja sulge modaal
@@ -80,7 +80,7 @@ export default function AddFriend({
 
     } catch (error: any) {
       // Püüame vead, mis tulevad näiteks 'sendFriendRequest' funktsioonist
-      setErrorMessage(error.message || "Tundmatu viga sõbra lisamisel.");
+      setErrorMessage(error.message || "Viga lisamisel.");
     }
     
     finishAction();
