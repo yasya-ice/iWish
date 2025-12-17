@@ -78,9 +78,9 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontFamily: 'Sora',
     textAlign: 'center',
-    marginTop: 85,
+    marginTop: 60,
     textTransform: 'capitalize',
-    lineHeight: 40, 
+    lineHeight: 50, 
   },
   highlightText: {
     color: '#F2E9C2',
@@ -95,7 +95,6 @@ const styles = StyleSheet.create({
   // --- NUPUD ---
   bigOrangeButton: {
   width: 270,
-  height: 55,
   paddingVertical: 16,
   paddingHorizontal: 20,
   justifyContent: 'center',
