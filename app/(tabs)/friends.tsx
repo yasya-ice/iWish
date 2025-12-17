@@ -130,7 +130,7 @@ async function handleDeleteFriend(friendProfileId: string) {
           onPress={() => handleAcceptRequest(item.id)} 
           style={styles.acceptButton}
         >
-          <Text style={styles.acceptButtonText}>Võta vastu</Text>
+          <Text style={styles.acceptButtonText}>Accept</Text>
         </TouchableOpacity>
       )}
     </>
