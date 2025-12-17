@@ -60,6 +60,7 @@ export type Friend = {
   relationship: string; // Näiteks 'BF', 'Granny', 'sister' (teie disaini järgi tuleb see maybe profiles tabelist või rakendusesiseselt defineerida/salvestada)
   avatar_url: string | null;
   status: 'pending' | 'accepted' | 'rejected';
+  is_initiator: boolean;
 };
 
 /**
@@ -119,6 +120,7 @@ export async function fetchFriendsList(): Promise<Friend[]> {
       avatar_url: friendProfileData.avatar_url,
       relationship: relationshipLabel,
       status: rel.status,
+      is_initiator: rel.user_id === senderId,
     } as Friend;
   });
 }

@@ -118,19 +118,31 @@ async function handleDeleteFriend(friendProfileId: string) {
     {/* Tegevusnupud (Kustuta/Võta vastu) */}
     <View style={styles.actionButtons}>
       {item.status === 'pending' && (
-        <TouchableOpacity onPress={() => handleAcceptRequest(item.id)} style={styles.acceptButton}>
+<>
+      {item.is_initiator ? (
+        // KUI SINA SAATSID: Kollane "Ootel" silt
+        <View style={styles.pendingLabel}>
+          <Text style={styles.pendingLabelText}>Sent</Text>
+        </View>
+      ) : (
+        // KUI SULLE SAADETI: Roheline "Võta vastu" nupp
+        <TouchableOpacity 
+          onPress={() => handleAcceptRequest(item.id)} 
+          style={styles.acceptButton}
+        >
           <Text style={styles.acceptButtonText}>Võta vastu</Text>
         </TouchableOpacity>
       )}
+    </>
+  )}
 
-      <TouchableOpacity 
-          style={styles.closeButton} 
-          onPress={() => handleDeleteFriend(item.profile_id)}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} 
-      >
-          <Feather name='x' size={18} color="#000" /> 
-      </TouchableOpacity>
-    </View>
+  <TouchableOpacity 
+      style={styles.closeButton} 
+      onPress={() => handleDeleteFriend(item.profile_id)}
+  >
+      <Feather name='x' size={18} color="#000" /> 
+  </TouchableOpacity>
+</View>
   </View>
 );
 
@@ -175,7 +187,7 @@ async function handleDeleteFriend(friendProfileId: string) {
               {/* Pending Requests */}
               {pendingRequests.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Ootel (Vastuvõtmiseks)</Text>
+                  <Text style={styles.sectionTitle}>Friend requests</Text>
                   <FlatList
                     data={pendingRequests}
                     keyExtractor={(item) => item.id.toString()}
@@ -315,18 +327,37 @@ width: 28,
   marginLeft: 10,
 },
   acceptButton: {
-    padding: 8,
-    backgroundColor: '#dff',
-    borderRadius: 5,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#E8F5E9', // Rohekas taust
+    borderRadius: 8,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#4CAF50',
   },
   acceptButtonText: {
-    color: 'green',
+    color: '#2E7D32',
     fontWeight: 'bold',
+    fontSize: 14,
   },
   pendingText: {
     color: '#FFCC00',
     fontStyle: 'italic',
     marginLeft: 10,
+  },
+  pendingLabel: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#FFF9C4', // Helekollane taust
+    borderRadius: 8,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#FBC02D', // Tumedam kollane piirjoon
+  },
+  pendingLabelText: {
+    color: '#F57F17', // Oranžikas-kollane tekst
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   
   // --- Modaal stiilid ---
