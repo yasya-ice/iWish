@@ -113,9 +113,10 @@ export default function AddFriend({
 const styles = StyleSheet.create({
     addFriendContainer: {
         width: screenWidth * 0.85, // Muuda laius modaali jaoks sobivaks
+        height: screenHeight * 0.45, // Muuda kõrgus modaali jaoks sobivaks
         padding: 20,
         backgroundColor: 'white',
-        borderRadius: 15, // Pildi järgi
+        borderRadius: 22, // Figma järgi
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
@@ -126,16 +127,27 @@ const styles = StyleSheet.create({
     header: {
         width: '100%',
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: 1,
+        position: 'relative',
     },
     title: {
+        padding: 15,
         fontSize: 18,
         fontWeight: 'bold',
         color: '#FFA500', // Sarnane pildil olevale värvile
+        textAlign: 'center',
     },
     closeButton: {
-        padding: 5,
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        padding: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#535252ff',
     }
 });
