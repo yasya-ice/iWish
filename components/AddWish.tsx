@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Alert, StyleSheet, View, Dimensions } from 'react-native';
 import { supabase } from '../utils/supabase';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system/legacy';
+import { Platform } from 'react-native';
 
 // Impordin abikomponendid
 import AddWishForm from './AddWishForm';
@@ -130,20 +132,27 @@ const takePhoto = async () => {
 
 // Pildi üleslaadimine (abifunktsioon)
 // Võtab vastu kohaliku pildi URI ja kasutaja ID --> tagastab Storage'i URL-i
-async function uploadImage(uri: string, userId: string): Promise<string | null> {
-  const fileExtension = uri.split('.').pop();
+async function uploadImage(uri: string, userId: string): Promise<string> {
   // Loome kordumatu failinime, et vältida konflikte
-  const fileName = `${userId}/${Date.now()}.${fileExtension}`; 
-  
+  const fileName = `${userId}/${Date.now()}.jpg`;
+  let uploadData: Blob | Uint8Array;
+
   // 1. tõmbab pildi binaarandmed
-  const response = await fetch(uri);
-  const blob = await response.blob();
+  if (Platform.OS === 'web') {
+    // On web, fetch gives a Blob
+    const response = await fetch(uri);
+    uploadData = await response.blob();
+  } else {
+    // On native, read file as base64 and convert to Uint8Array
+    const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' });
+    uploadData = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+  }
   
   // 2. Laadime Supabase Storage'i
   const { data, error } = await supabase.storage
     .from('wish_images') //Storage Bucket'i nimi
-    .upload(fileName, blob, {
-      cacheControl: '3600',
+    .upload(fileName, uploadData, {
+      contentType: 'image/jpeg',
       upsert: false,
     });
     
