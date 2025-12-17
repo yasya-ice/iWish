@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 export default function Profile() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -86,6 +87,16 @@ export default function Profile() {
         {/* Pealkiri */}
         <Text style={styles.header}>My Profile</Text>
 
+        {/* Valja logimine */}
+        <View style={styles.signOutContainer}>
+          <TouchableOpacity 
+            style={styles.signOutButton} 
+            onPress={() => Alert.alert('Signed out')}
+          >
+            <Ionicons name="exit-outline" size={24} color="#fff"/>
+            <Text style={styles.signOutText}>Sign Out</Text>
+          </TouchableOpacity>
+        </View>
         {/* Profiilipilt */}
         <View style={styles.profilePicContainer}>
           <TouchableOpacity onPress={pickImage} style={styles.imageWrapper}>
@@ -221,7 +232,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   container: {
-    paddingTop: 60,
+    paddingTop: 20,
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
@@ -236,7 +247,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     alignSelf: 'center',
-    marginBottom: 20,
+    marginVertical: 20,
   },
   imageWrapper: {
     width: '100%',
@@ -336,5 +347,28 @@ const styles = StyleSheet.create({
   notificationLabel: {
     fontSize: 16,
     color: '#333',
+  },
+  // Valja logimine
+  signOutContainer: {
+    position: 'absolute',
+    top: 20,
+    right: 15,
+  },
+  signOutButton: {
+    display: 'flex',
+    flexDirection: 'row',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5a858ff',
+    alignSelf: 'center',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+  },
+  signOutText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    fontFamily: 'Lato',
   },
 });
