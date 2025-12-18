@@ -11,7 +11,7 @@ import AddWishForm from './AddWishForm';
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
 
-export default function AddWish({ onCloseModal }: { onCloseModal: () => void }) {
+export default function AddWish({ onCloseModal, onWishAdded }: { onCloseModal: () => void; onWishAdded?: () => void; }) {
   const [title, setTitle] = useState('')
   const [link, setLink] = useState('')
   const [description, setDescription] = useState('') 
@@ -200,22 +200,20 @@ if (!user) { // Nüüd kontrollib otse kasutaja objekti
         came_true: false, // Vaikimisi false, home-actual vaates kuvamiseks
       });
 
-    if (dbError) {
-      setErrorMessage(dbError.message);
-      finishSave();
-      return;
-    }
+    if (dbError) throw dbError;
 
     // 3. Õnnestunud salvestamine
     Alert.alert("Soov lisatud", "Sinu soov on edukalt salvestatud!");
     
+  
     // Puhasta olekud ja sulge modaal
     setTitle('');
     setLink('');
     setDescription('');
     setImageUri(null);
-    onCloseModal(); // Eeldab, et võtad vastu onCloseModal propina!
 
+    if (onWishAdded) onWishAdded();
+    onCloseModal();
   } catch (error: any) {
     setErrorMessage(error.message || "Tundmatu viga salvestamisel.");
   }

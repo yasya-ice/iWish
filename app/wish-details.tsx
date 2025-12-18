@@ -1,9 +1,10 @@
-import React, { useMemo } from "react";
-import { Image, Linking, Pressable, ScrollView, Text, View, StyleSheet, Dimensions, Alert, useColorScheme, Share } from "react-native";
+import React, { useMemo, useState } from "react";
+import { Image, Linking, Pressable, ScrollView, Text, View, StyleSheet, Dimensions, Alert, useColorScheme } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/theme";
 import Feather from '@expo/vector-icons/Feather';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { supabase } from '@/utils/supabase';
 
 const { height } = Dimensions.get("window");
 
@@ -13,7 +14,7 @@ export default function WishDetails() {
     const scheme = useColorScheme();
     const theme = scheme === 'dark' ? Colors.dark : Colors.light;
 
-    const wish = useMemo(() => {
+    const wishData = useMemo(() => {
         try {
             return params.wish ? JSON.parse(params.wish as string) : null;
         } catch (e) {
@@ -21,23 +22,34 @@ export default function WishDetails() {
         }
     }, [params.wish]);
 
+    // Olek soovi staatuse hoidmiseks
+    const [isDone, setIsDone] = useState(wishData?.came_true || false);
+
+    const handleToggleStatus = async () => {
+        if (!wishData) return;
+        const newStatus = !isDone;
+
+        try {
+            const { error } = await supabase
+                .from('wishes')
+                .update({ came_true: newStatus })
+                .eq('id', wishData.id);
+
+            if (error) throw error;
+            setIsDone(newStatus);
+            
+            Alert.alert("Tehtud!", newStatus ? "Soov liigutati Came True nimekirja." : "Soov liigutati tagasi aktiivseks.");
+        } catch (error: any) {
+            Alert.alert("Viga", error.message);
+        }
+    };
+
     const onOpenLink = () => {
-        if (wish?.link) Linking.openURL(wish.link);
+        if (wishData?.link) Linking.openURL(wishData.link);
         else Alert.alert("Link puudub");
     };
 
-    // Funktsioon, mis viib sõprade valimise vaatesse
-    const handleShareToFriend = () => {
-        router.push({
-            pathname: "/friends", // Sinu sõprade nimekirja teekond
-            params: { 
-                action: "share_wish", 
-                wishData: JSON.stringify(wish) 
-            }
-        });
-    };
-
-    if (!wish) return <Text>Andmed puuduvad</Text>;
+    if (!wishData) return <Text style={{ marginTop: 50, textAlign: 'center' }}>Andmed puuduvad</Text>;
 
     return (
         <SafeAreaView style={[styles.save, { backgroundColor: theme.background }]}>
@@ -45,7 +57,7 @@ export default function WishDetails() {
                 <View style={styles.imageContainer}>
                     <Image
                         style={styles.image}
-                        source={{ uri: wish.image_url || "https://placehold.co/600x400" }}
+                        source={{ uri: wishData.image_url || "https://placehold.co/600x400" }}
                         resizeMode="cover"
                     />
                     <Pressable onPress={() => router.back()} style={styles.backContainer}>
@@ -54,36 +66,34 @@ export default function WishDetails() {
                 </View>
 
                 <View style={[styles.content, { backgroundColor: theme.background }]}>
-                    {/* PEALKIRI JA LINK KÕRVUTI */}
                     <View style={styles.titleRow}>
-                        <Text style={[styles.title, { color: theme.text }]}>{wish.title}</Text>
-                        {wish.link && (
+                        <Text style={[styles.title, { color: theme.text }]}>{wishData.title}</Text>
+                        {wishData.link && (
                             <Pressable onPress={onOpenLink} style={styles.linkCircle}>
                                 <Feather name="link-2" size={20} color="#C67C4E" />
                             </Pressable>
                         )}
                     </View>
-
                     <Text style={[styles.description, { color: theme.text }]}>
-                        {wish.description || "Kirjeldust ei ole lisatud."}
+                        {wishData.description || "Kirjeldust ei ole lisatud."}
                     </Text>
                 </View>
 
-                {/* ALUMINE NUPPUDE RIDA */}
                 <View style={styles.footer}>
-                    <Pressable 
-                        style={styles.shareIconBtn} 
-                        onPress={handleShareToFriend}
-                    >
+                    <Pressable style={styles.shareIconBtn} onPress={() => Alert.alert("Share")}>
                         <Feather name="upload" size={24} color="#C67C4E" />
                     </Pressable>
 
                     <Pressable 
-                        style={[styles.fulfillBtn, { backgroundColor: wish.came_true ? '#ccc' : '#F5A858' }]}
-                        onPress={() => Alert.alert("Märgi tehtuks funktsioon")}
+                        style={[
+                            styles.fulfillBtn, 
+                            { backgroundColor: isDone ? '#E8F5E9' : '#F5A858' },
+                            isDone && { borderColor: '#4CAF50', borderWidth: 1 }
+                        ]}
+                        onPress={handleToggleStatus}
                     >
-                        <Text style={styles.fulfillBtnText}>
-                            {wish.came_true ? "Märgi tegemata" : "Täida soov"}
+                        <Text style={[styles.fulfillBtnText, isDone && { color: '#2E7D32' }]}>
+                            {isDone ? "Mark undone" : "Mark done"}
                         </Text>
                     </Pressable>
                 </View>
@@ -92,6 +102,7 @@ export default function WishDetails() {
     );
 }
 
+// LISATUD PUUDUOLEVAD STIILID
 const styles = StyleSheet.create({
     save: { flex: 1 },
     imageContainer: { position: 'relative' },
@@ -104,15 +115,8 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         padding: 8,
     },
-    content: {
-        flex: 1,
-        padding: 24,
-    },
-    titleRow: { 
-        flexDirection: "row", 
-        alignItems: "center", 
-        marginBottom: 20 
-    },
+    content: { flex: 1, padding: 24 },
+    titleRow: { flexDirection: "row", alignItems: "center", marginBottom: 20 },
     title: { fontSize: 28, fontWeight: "bold", flex: 1 },
     linkCircle: {
         width: 40,
@@ -146,7 +150,6 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         justifyContent: 'center',
         alignItems: 'center',
-        elevation: 2,
     },
     fulfillBtnText: {
         color: '#fff',

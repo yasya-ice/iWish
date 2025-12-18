@@ -1,17 +1,15 @@
 import React from 'react';
-import { StyleSheet, View, Text, TextInput, Keyboard, ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback } from 'react-native';
-import { ThemedButton } from '@/components/themed-button'; // Eeldame, et see on olemas
-import Feather from '@expo/vector-icons/Feather'; // Eeldame, et see on olemas
+import { StyleSheet, View, Text, TextInput, Keyboard, KeyboardAvoidingView, Platform, TouchableWithoutFeedback } from 'react-native';
+import { ThemedButton } from '@/components/themed-button';
 
-// Määran Propide tüübi
 interface AddFriendFormProps {
-  friendName: string; // Kasutajanimi
+  friendName: string;
   setFriendName: (text: string) => void;
-  relationship: string; // Näiteks 'sister', 'BF', 'Granny'
+  relationship: string;
   setRelationship: (text: string) => void;
   loading: boolean;
   errorMessage: string | null;
-  handleAddFriend: () => void; // Funktsioon sõbra lisamise/otsimise käivitamiseks
+  handleAddFriend: () => void;
 }
 
 export default function AddFriendForm({
@@ -23,64 +21,56 @@ export default function AddFriendForm({
   errorMessage,
   handleAddFriend,
 }: AddFriendFormProps) {
-    
-  // Nupu keelamine
   const isDisabled = loading || !friendName.trim();
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-    <View style={styles.formContainer}>
-        {/* Nimi/Kasutajanimi */}
-        <View style={styles.verticallySpaced}>
-          <Text style={styles.label}>e-mail:</Text>
-          <TextInput
-            style={styles.input}
-            onChangeText={setFriendName}
-            value={friendName}
-            placeholder="maret.vaabel@voco.ee"
-            placeholderTextColor="#c5c5c5"
-            autoComplete={'username'} // Kasutame sobivat autocomplete väärtust
-            autoCapitalize={'none'}
-          />
-        </View>
-        
-        {/* Suhe (Relationship) */}
-        <View style={styles.verticallySpaced}>
-          <Text style={styles.label}>Relationship:</Text>
-          <TextInput
-            style={styles.input}
-            onChangeText={setRelationship}
-            value={relationship}
-            placeholder="sister, BF, Granny (optional)"
-            placeholderTextColor="#c5c5c5"
-            autoComplete={'off'}
-          />
-        </View>
-        
-        {/* VEATEADE */}
-        {errorMessage && (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>Viga: {errorMessage}</Text>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.formContainer}>
+          <View style={styles.verticallySpaced}>
+            <Text style={styles.label}>e-mail:</Text>
+            <TextInput
+              style={styles.input}
+              onChangeText={setFriendName}
+              value={friendName}
+              placeholder="maret.vaabel@voco.ee"
+              placeholderTextColor="#c5c5c5"
+              autoComplete="email"
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
           </View>
-        )}
+          
+          <View style={styles.verticallySpaced}>
+            <Text style={styles.label}>Relationship:</Text>
+            <TextInput
+              style={styles.input}
+              onChangeText={setRelationship}
+              value={relationship}
+              placeholder="sister, BF, Granny (optional)"
+              placeholderTextColor="#c5c5c5"
+              autoComplete="off"
+            />
+          </View>
+          
+          {errorMessage ? (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorText}>Viga: {errorMessage}</Text>
+            </View>
+          ) : null}
 
-        {/* PEAMINE LISA NUPP */}
-        <ThemedButton
-          onPress={handleAddFriend}
-          disabled={isDisabled}
-          title={loading ? "Otsin..." : "Add friend"}
-          style={{ width: 250, height: 50, borderRadius: 25, marginTop: 5 }}
-        />
-      </View>
+          <ThemedButton
+            onPress={handleAddFriend}
+            disabled={isDisabled}
+            title={loading ? "Otsin..." : "Add friend"}
+            style={{ width: 250, height: 50, borderRadius: 25, marginTop: 5 }}
+          />
+        </View>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }
 
-// Kasutame AddWishForm stiile, kohandades neid veidi
 const styles = StyleSheet.create({
   formContainer: {
     width: '100%',
@@ -93,15 +83,13 @@ const styles = StyleSheet.create({
   },
   label: {
     color: '#F5A858',
-    fontFamily: 'Sora',
     fontSize: 16,
-    fontStyle: 'normal',
     fontWeight: '600',
     lineHeight: 22,
     marginBottom: 5,
   },
   verticallySpaced: {
-    marginBottom: 25, // Lisa veidi rohkem vahet, et sarnaneda pildile
+    marginBottom: 25,
     alignSelf: 'center',
   },
   input: {
@@ -109,9 +97,9 @@ const styles = StyleSheet.create({
     height: 50,
     backgroundColor: '#ffffff',
     borderWidth: 1, 
-    borderColor: '#C67C4E', // Kasutan teie AddWishFormi värvi
+    borderColor: '#C67C4E',
     paddingHorizontal: 15,
-    borderRadius: 20, // Kasutan teie AddWishFormi radius't
+    borderRadius: 20,
     fontSize: 16,
     color: '#000000',
   },

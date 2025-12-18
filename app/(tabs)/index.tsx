@@ -1,70 +1,50 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, Alert, Dimensions } from 'react-native'; // Lisasime Button ja Alert
-// See import viitab Sinu puhastatud failile utils/supabase
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, StyleSheet, Alert, Dimensions } from 'react-native'; 
 import { supabase } from '@/utils/supabase'; 
-import Auth from '@/components/Auth'; // Sisselogimise/Registreerimise vaade
-import { Session } from '@supabase/supabase-js'; // Session tüüp
-import { useNavigation } from 'expo-router';
-import { customTabBarStyle } from "@/constants/tab-bar";
+import Auth from '@/components/Auth'; 
+import { Session } from '@supabase/supabase-js'; 
+import { useFocusEffect } from 'expo-router'; // Impordime useFocusEffect
 import { ThemedButton } from '@/components/themed-button';
 import Wishlist from '@/components/Wishlist';
 import AppModal from '@/components/app-modal';
 import AddWish from '@/components/AddWish';
 
-const deleteWish = async (wishId: number) => {
-  try {
-    // Kustutamise päring Supabase'ile
-    const { error } = await supabase
-      .from('wishes') // Teie tabeli nimi
-      .delete()        // Kustutamise käsk
-      .eq('id', wishId); // Kustuta RIDA, mille ID vastab antud wishId-le
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    // Pärast edukat kustutamist: värskenda soovide nimekirja
-    // See peaks kutsuma funktsiooni, mis tõmbab andmed uuesti
-    // näiteks: fetchWishes(); 
-    
-    Alert.alert("Eemaldatud", "Soov kustutati edukalt.");
-
-  } catch (error: any) {
-    Alert.alert("Viga kustutamisel", error.message);
-  }
-};
-
-const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
 
 export default function App() {
   const [modalVisible, setModalVisible] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
-  const navigation = useNavigation(); 
   const [cameTrue, setCameTrue] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
+  // 1. Autentimise kontroll
   useEffect(() => {
-    // 1. Kontrolli seansi olekut käivitamisel
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
 
-    // 2. Seadista reaalajas kuulaja olekumuutustele
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
     
-    // Puhasta kuulaja komponendi eemaldamisel
     return () => subscription.unsubscribe();
   }, []);
 
+  // 2. See on VÕTI: Värskendab nimekirja, kui kasutaja naaseb sellele lehele
+  useFocusEffect(
+    useCallback(() => {
+      // Suurendame refreshKey-d, mis sunnib <Wishlist /> komponenti uuesti pärima andmeid
+      setRefreshKey(prev => prev + 1);
+    }, [])
+  );
+
+  // 3. Reaalajas kuulaja (kui keegi lisab soovi väljaspool detailvaadet)
   useEffect(() => {
     const channel = supabase
       .channel('schema-db-changes')
       .on('postgres_changes', 
-        { event: 'INSERT', schema: 'public', table: 'wishes'}, () => {
-          setRefreshKey(prev => prev + 1); // See värskendab nimekirja automaatselt!
+        { event: '*', schema: 'public', table: 'wishes'}, () => {
+          setRefreshKey(prev => prev + 1);
         }
       )
       .subscribe();
@@ -72,11 +52,8 @@ export default function App() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  <Wishlist key={refreshKey} cameTrue={cameTrue}/>
-
   return (
     <View style={styles.container}>
-      {/* Kui seanss on olemas, kuva sisselogitud sisu */}
       {session && session.user ? (
         <>
           <View style={styles.homeNavContainer}>
@@ -100,14 +77,18 @@ export default function App() {
               style={styles.homeNavButton}
             />
           </View>
+          
+          {/* refreshKey muutumine sunnib Wishlisti andmeid uuendama */}
           <Wishlist key={refreshKey} cameTrue={cameTrue}/>
           
           <AppModal visible={modalVisible} onClose={() => setModalVisible(false)} title="Add a wish">
-            <AddWish onCloseModal={() => setModalVisible(false)} />
-            </AppModal>
+            <AddWish 
+            onCloseModal={() => setModalVisible(false)}
+            onWishAdded={() => setRefreshKey(prev => prev + 1)}
+              />
+          </AppModal>
         </>
       ) : (
-        // Kui seanssi pole, kuva autentimise vorm
         <Auth onReadyForPasswordUpdate={() => {}} />
       )}
     </View>
@@ -118,38 +99,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    justifyContent: 'center', 
+    // Eemaldasin justifyContent: 'center', et nimekiri algaks ülevalt
     alignItems: 'stretch',
   },
-  loggedInContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   homeNavContainer: {
-    height: 50,
+    height: 60,
     flexDirection: 'row',
     justifyContent: 'space-between', 
     alignItems: 'center',
-    paddingHorizontal: 10, // Lisab veidi ruumi servadele
-    paddingVertical: 8,
+    paddingHorizontal: 10,
     width: '100%',
-    margin: 10,
-    alignSelf: 'center',
+    marginTop: 10,
+    marginBottom: 5,
   },
   homeNavButton: {
     width: screenWidth * 0.3,
-    marginHorizontal: screenWidth * 0.01,
   },
-  welcomeText: {
-    fontSize: 20, 
-    textAlign: 'center',
-    marginBottom: 20,
-    fontWeight: '600',
-  },
-  signOutButtonContainer: {
-    marginTop: 20,
-    width: '100%',
-    maxWidth: 200, // Piirame nupu laiust
-  }
 });
