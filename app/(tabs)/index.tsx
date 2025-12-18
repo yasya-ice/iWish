@@ -3,7 +3,7 @@ import { View, StyleSheet, Alert, Dimensions } from 'react-native';
 import { supabase } from '@/utils/supabase'; 
 import Auth from '@/components/Auth'; 
 import { Session } from '@supabase/supabase-js'; 
-import { useFocusEffect } from 'expo-router'; // Impordime useFocusEffect
+import { useFocusEffect, useNavigation } from 'expo-router'; // Impordime useFocusEffect
 import { ThemedButton } from '@/components/themed-button';
 import Wishlist from '@/components/Wishlist';
 import AppModal from '@/components/app-modal';
@@ -14,10 +14,19 @@ const screenWidth = Dimensions.get('window').width;
 export default function App() {
   const [modalVisible, setModalVisible] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
+  const navigation = useNavigation();
   const [cameTrue, setCameTrue] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // 1. Autentimise kontroll
+  useEffect(() => {
+    navigation.setOptions({
+      headerShown: false, // Peidab "Home" päise
+      tabBarStyle: session
+        ? customTabBarStyle // Kui on sisselogitud, näita disainitud riba
+        : { display: "none" }, // KUI POLE SESSIOONI, PEIDA RIBA
+    });
+  }, [session, navigation]);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -80,7 +89,6 @@ export default function App() {
           
           {/* refreshKey muutumine sunnib Wishlisti andmeid uuendama */}
           <Wishlist key={refreshKey} cameTrue={cameTrue}/>
-          
           <AppModal visible={modalVisible} onClose={() => setModalVisible(false)} title="Add a wish">
             <AddWish 
             onCloseModal={() => setModalVisible(false)}
