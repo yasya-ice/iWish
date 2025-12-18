@@ -22,6 +22,20 @@ export default function WishDetails() {
         }
     }, [params.wish]);
 
+    const handleShareToFriend = () => {
+    if (!wishData) return;
+    router.push({
+        pathname: "/friends",
+        params: { 
+            action: "share_wish", 
+            wishData: JSON.stringify(wishData) 
+        }
+    });
+};
+
+<Pressable style={styles.shareIconBtn} onPress={handleShareToFriend}>
+    <Feather name="upload" size={24} color="#C67C4E" />
+</Pressable>
     // Olek soovi staatuse hoidmiseks
     const [isDone, setIsDone] = useState(wishData?.came_true || false);
 
@@ -80,7 +94,10 @@ export default function WishDetails() {
                 </View>
 
                 <View style={styles.footer}>
-                    <Pressable style={styles.shareIconBtn} onPress={() => Alert.alert("Share")}>
+                    <Pressable style={styles.shareIconBtn}onPress={() => {
+                        console.log("Nupule vajutati!");
+                        handleShareToFriend();
+                    }}>
                         <Feather name="upload" size={24} color="#C67C4E" />
                     </Pressable>
 

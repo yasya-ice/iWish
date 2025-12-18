@@ -15,11 +15,14 @@ import { supabase } from '@/utils/supabase';
 export default function FriendsScreen() {
   const params = useLocalSearchParams(); 
   const router = useRouter();
+  
+  // Olekud
   const [session, setSession] = useState<Session | null>(null);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddFriendModalVisible, setIsAddFriendModalVisible] = useState(false);
 
+  // 1. Autentimise kontroll
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -30,6 +33,7 @@ export default function FriendsScreen() {
     return () => subscription.unsubscribe();
   }, []);
     
+  // 2. Sõprade laadimise funktsioon
   const loadFriends = useCallback(async () => {
     setLoading(true);
     try {
@@ -47,9 +51,7 @@ export default function FriendsScreen() {
     loadFriends();
   }, [loadFriends]);
 
-  const acceptedFriends = friends.filter(f => f.status === 'accepted');
-  const pendingRequests = friends.filter(f => f.status === 'pending');
-
+  // 3. Sõprade tegevuste käitlejad
   async function handleDeleteFriend(friendProfileId: string) {
     try {
         await deleteFriendship(friendProfileId);
@@ -69,42 +71,57 @@ export default function FriendsScreen() {
     }
   };
 
+  // 4. JAGAMISE LOOGIKA: See käivitub, kui vajutad sõbra peale jagamisrežiimis
   const handleFriendPress = async (friendId: string) => {
+   console.log("DEBUG: Sõbra peale vajutatud. ID:", friendId);
+    // Kontrollime, kas oleme jagamise režiimis
     if (params.action === "share_wish" && params.wishData) {
       try {
         const wishRaw = Array.isArray(params.wishData) ? params.wishData[0] : params.wishData;
         const originalWish = JSON.parse(wishRaw);
 
-        const { error } = await supabase
+        console.log("DEBUG: Proovin saata soovi:", originalWish.title);
+
+        const { data, error } = await supabase
           .from('wishes')
           .insert({
             title: originalWish.title,
             description: originalWish.description,
             link: originalWish.link,
             image_url: originalWish.image_url,
-            user_id: friendId,
-            created_by: session?.user.id,
+            user_id: friendId,           
+            created_by: session?.user.id, 
             came_true: false
           });
+          
+        if (error) {
+            console.error("DEBUG: Supabase viga:", error.message);
+            throw error;
+        }
 
-        if (error) throw error;
-        Alert.alert("Saadetud!", "Soov on nüüd sõbra nimekirjas.");
+        console.log("DEBUG: Soov edukalt saadetud! Vastus:", data);
+        Alert.alert("Saadetud!", "Soov on edukalt sõbra nimekirja lisatud.");
         router.back(); 
       } catch (error: any) {
-        Alert.alert("Viga", error.message);
+        console.error("DEBUG: Üldine viga jagamisel:", error.message);
+        Alert.alert("Viga jagamisel", error.message);
       }
+    } else {
+        console.log("DEBUG: Tavaline vaade, jagamist ei toimu.");
     }
   };
 
+  // 5. Sõbra rea renderdamine
   const renderFriendItem = ({ item }: { item: Friend }) => (
     <View style={styles.friendItem}>
       <TouchableOpacity 
         style={[
           styles.friendInfo, 
-          params.action === "share_wish" && { backgroundColor: '#fff8f0', borderRadius: 10 }
+          // Kui on jagamise režiim, anname sõbrale visuaalse rõhu
+          params.action === "share_wish" && { backgroundColor: '#fff8f0', borderRadius: 10, padding: 5 }
         ]} 
         onPress={() => handleFriendPress(item.profile_id)}
-        disabled={item.status !== 'accepted'}
+        disabled={item.status !== 'accepted' && params.action === "share_wish"}
       >
         {item.avatar_url ? (
           <Image source={{ uri: item.avatar_url }} style={styles.avatar} />
@@ -115,7 +132,7 @@ export default function FriendsScreen() {
         )}
         <View style={styles.textContainer}>
           <Text style={styles.friendName}>{item.username}</Text>
-          <Text style={styles.friendRelationship}>{item.relationship}</Text>
+          <Text style={styles.friendRelationship}>{item.relationship || 'Friend'}</Text>
         </View>
       </TouchableOpacity>
       
@@ -146,10 +163,14 @@ export default function FriendsScreen() {
     </View>
   );
 
+  const acceptedFriends = friends.filter(f => f.status === 'accepted');
+  const pendingRequests = friends.filter(f => f.status === 'pending');
+
   return (
     <View style={styles.container}>
       {session && session.user ? (
         <>
+          {/* Sõbra lisamise modal */}
           <Modal
             animationType="fade"
             transparent
@@ -166,7 +187,7 @@ export default function FriendsScreen() {
 
           <View style={styles.header}>
             <Text style={styles.title}>
-              {params.action === "share_wish" ? "Select a friend to share" : "My friends"}
+              {params.action === "share_wish" ? "Share with..." : "My friends"}
             </Text>
             {params.action !== "share_wish" && (
               <TouchableOpacity
@@ -183,30 +204,24 @@ export default function FriendsScreen() {
           )}
 
           {!loading && (
-            <>
-              {pendingRequests.length > 0 && (
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Friend requests</Text>
-                  <FlatList
-                    data={pendingRequests}
-                    keyExtractor={(item) => item.id.toString()}
-                    renderItem={renderFriendItem}
-                  />
-                </View>
-              )}
-
-              <Text style={styles.sectionTitle}>Verified friends</Text>
-
-              {acceptedFriends.length === 0 ? (
-                <Text style={styles.emptyText}>Sõpru pole veel lisatud.</Text>
-              ) : (
-                <FlatList
-                  data={acceptedFriends}
-                  keyExtractor={(item) => item.id.toString()}
-                  renderItem={renderFriendItem}
-                />
-              )}
-            </>
+            <FlatList
+              data={[
+                ...(pendingRequests.length > 0 ? [{ type: 'header', title: 'Friend requests' }, ...pendingRequests] : []),
+                { type: 'header', title: 'Verified friends' },
+                ...acceptedFriends
+              ]}
+              keyExtractor={(item, index) => 'id' in item ? item.id.toString() : `header-${index}`}
+              renderItem={({ item }) => {
+                if ('type' in item && item.type === 'header') {
+                  return <Text style={styles.sectionTitle}>{item.title}</Text>;
+                }
+                return renderFriendItem({ item: item as Friend });
+              }}
+              ListEmptyComponent={
+                !pendingRequests.length && !acceptedFriends.length ? 
+                <Text style={styles.emptyText}>No friends found.</Text> : null
+              }
+            />
           )}
         </>
       ) : (
@@ -218,19 +233,18 @@ export default function FriendsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: '#fff' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  title: { fontSize: 24, fontWeight: 'bold' },
-  addButton: { backgroundColor: '#F5A858', width: 42, height: 42, borderRadius: 26, justifyContent: 'center', alignItems: 'center' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, marginTop: 40 },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#333' },
+  addButton: { backgroundColor: '#F5A858', width: 42, height: 42, borderRadius: 21, justifyContent: 'center', alignItems: 'center' },
   avatar: { width: 50, height: 50, borderRadius: 25, marginRight: 15 },
-  avatarPlaceholder: { backgroundColor: '#eee', justifyContent: 'center', alignItems: 'center', width: 50, height: 50, borderRadius: 25, marginRight: 15 },
+  avatarPlaceholder: { backgroundColor: '#eee', justifyContent: 'center', alignItems: 'center' },
   loader: { marginTop: 50 },
-  section: { marginBottom: 20, paddingHorizontal: 10, backgroundColor: '#f9f9f9', borderRadius: 8 },
-  sectionTitle: { fontSize: 18, fontWeight: '600', marginTop: 15, marginBottom: 10 },
-  emptyText: { textAlign: 'center', color: '#666', marginTop: 20 },
+  sectionTitle: { fontSize: 18, fontWeight: '600', marginTop: 20, marginBottom: 10, color: '#F5A858' },
+  emptyText: { textAlign: 'center', color: '#666', marginTop: 40 },
   friendInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  friendItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f0f0f0', justifyContent: 'space-between' },
+  friendItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
   friendName: { fontSize: 18, fontWeight: '500', color: '#333' },
-  actionButtons: { flexDirection: 'row', alignItems: 'center' },
+  actionButtons: { flexDirection: 'row', alignItems: 'center', marginLeft: 10 },
   friendRelationship: { fontSize: 14, color: '#888', marginTop: 2 },
   textContainer: { justifyContent: 'center' },
   closeButton: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: '#ddd', justifyContent: 'center', alignItems: 'center', marginLeft: 10 },

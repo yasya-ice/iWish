@@ -8,8 +8,6 @@ import { ThemedButton } from '@/components/themed-button';
 import Wishlist from '@/components/Wishlist';
 import AppModal from '@/components/app-modal';
 import AddWish from '@/components/AddWish';
-
-// 1. LAHENDUS: Impordime puuduva stiili (Screenshot 04.53.57 veaparandus)
 import { customTabBarStyle } from "@/constants/tab-bar";
 
 const screenWidth = Dimensions.get('window').width;
