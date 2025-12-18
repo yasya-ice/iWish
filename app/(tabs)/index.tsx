@@ -59,6 +59,13 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+useEffect(() => {
+  navigation.setOptions({
+    headerShown: false, // Peidab "Home" teksti ülevalt
+    tabBarStyle: session ? customTabBarStyle : { display: "none" }, // Peidab alumise riba, kui session puudub
+  });
+}, [session, navigation]);
+
   useEffect(() => {
     const channel = supabase
       .channel('schema-db-changes')
