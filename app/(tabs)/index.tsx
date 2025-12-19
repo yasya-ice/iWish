@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 10,
     width: '100%',
-    marginTop: 10,
+    marginTop: 65,
     marginBottom: 5,
   },
   homeNavButton: {

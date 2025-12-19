@@ -46,7 +46,7 @@ export default function TabLayout() {
           fontSize: 12, 
           padding: 3,
         },
-        headerShown: true,
+        headerShown: false,
         tabBarButton: HapticTab,
       }}>
     <Tabs.Screen

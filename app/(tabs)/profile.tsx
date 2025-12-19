@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   container: {
-    paddingTop: 20,
+    paddingTop: 65,
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
   // Valja logimine
   signOutContainer: {
     position: 'absolute',
-    top: 20,
+    top: 65,
     right: 15,
   },
   signOutButton: {
